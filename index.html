@@ -457,7 +457,6 @@ body.dark .topbar{background:linear-gradient(180deg,#0E2333,#0A1620);}
   <div class="tabs">
     <button class="tab-btn active" data-view="schedule"><span class="icon">📅</span>일정</button>
     <button class="tab-btn" data-view="food"><span class="icon">🍽️</span>맛집</button>
-    <button class="tab-btn" data-view="budget"><span class="icon">💶</span>예산</button>
     <button class="tab-btn" data-view="info"><span class="icon">🧭</span>정보</button>
   </div>
 </div>
@@ -831,9 +830,7 @@ function updateTotal(){
     const v = Number(inp.value);
     if(!isNaN(v)) total += v;
   });
-  const krw = Math.round(total * 1550);
-  document.getElementById('budget-total').textContent = `€${total.toLocaleString()}`;
-  document.getElementById('budget-krw').textContent = `≈ ₩${krw.toLocaleString()} (참고용, €1≈₩1,550)`;
+
 }
 
 /* ============ TABS ============ */
