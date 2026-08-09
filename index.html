@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>이베리아 여정 카드</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --azulejo-deep:#1B4965;
+  --azulejo-mid:#5FA8D3;
+  --whitewash:#F6F1E7;
+  --whitewash-2:#EFE7D6;
+  --terracotta:#C1502E;
+  --gold:#C08A28;
+  --olive:#5F7A4F;
+  --ink:#22303A;
+  --ink-soft:#5C6B73;
+  --line:#DAD0BC;
+  --card:#FFFFFF;
+  /* category colors */
+  --cat-sight:#1B4965;
+  --cat-sight-bg:#E9F0F4;
+  --cat-transit:#B8860B;
+  --cat-transit-bg:#FBF3DE;
+  --cat-food:#5F7A4F;
+  --cat-food-bg:#EFF3E9;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--whitewash);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+  transition:background .2s ease, color .2s ease;
+}
+body.dark{
+  --whitewash:#141B22;
+  --whitewash-2:#1D2732;
+  --ink:#EDE7DA;
+  --ink-soft:#9AA7B0;
+  --line:#2E3944;
+  --card:#1B242D;
+}
+body.dark .topbar{background:linear-gradient(180deg,#0E2333,#0A1620);}
+.dark-toggle{
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); color:#fff;
+  border-radius:16px; padding:4px 10px; font-size:11px; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.app{max-width:560px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--whitewash);}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  background:linear-gradient(180deg,var(--azulejo-deep),#143A52);
+  padding:14px 16px 12px;
+  position:sticky; top:0; z-index:10;
+  box-shadow:0 6px 18px -10px rgba(0,0,0,.35);
+}
+.topbar .title-row{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;}
+.topbar h1{
+  font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:#fff; margin:0;
+  letter-spacing:-.01em;
+}
+.topbar .range{font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--azulejo-mid);}
+
+/* city pills */
+.city-strip{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-bottom:10px;}
+.city-strip::-webkit-scrollbar{display:none;}
+.city-pill{
+  flex:0 0 auto; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600;
+  background:rgba(255,255,255,.08); color:rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.2);
+  cursor:pointer; white-space:nowrap; font-family:'Inter',sans-serif;
+}
+.city-pill.active{background:#fff; color:var(--azulejo-deep); border-color:#fff;}
+
+/* boarding-pass day strip */
+.day-strip{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:2px;
+  scrollbar-width:none;
+}
+.day-strip::-webkit-scrollbar{display:none;}
+.ticket{
+  flex:0 0 auto; width:50px; padding:7px 4px 6px;
+  background:rgba(255,255,255,.08);
+  border:1px dashed rgba(255,255,255,.35);
+  border-radius:9px;
+  text-align:center; cursor:pointer;
+  transition:all .15s ease;
+  position:relative;
+}
+.ticket .d{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; color:#fff; line-height:1.1;}
+.ticket .w{font-size:9px; color:rgba(255,255,255,.6); margin-top:1px;}
+.ticket.active{
+  background:#fff; border-style:solid; border-color:#fff;
+  transform:translateY(-2px);
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.4);
+}
+.ticket.active .d{color:var(--azulejo-deep);}
+.ticket.active .w{color:var(--terracotta); font-weight:700;}
+.ticket.today::before{
+  content:"TODAY"; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace; font-size:7px; font-weight:700; letter-spacing:.05em;
+  background:var(--terracotta); color:#fff; padding:2px 5px; border-radius:4px; white-space:nowrap;
+}
+
+/* ---------- BOTTOM TABS ---------- */
+.tabs{
+  display:flex; position:sticky; bottom:0; z-index:10;
+  background:#fff; border-top:1px solid var(--line);
+  box-shadow:0 -6px 16px -10px rgba(0,0,0,.2);
+}
+.tab-btn{
+  flex:1; padding:11px 0 9px; text-align:center; background:none; border:none; cursor:pointer;
+  font-family:'Inter',sans-serif; font-size:11px; font-weight:600; color:var(--ink-soft);
+}
+.tab-btn .icon{display:block; font-size:17px; margin-bottom:2px;}
+.tab-btn.active{color:var(--azulejo-deep);}
+
+/* ---------- MAIN CONTENT ---------- */
+.content{flex:1; padding:18px 16px 22px; overflow-y:auto;}
+.view{display:none;}
+.view.active{display:block;}
+
+.day-head{margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end;}
+.day-head .date-big{
+  font-family:'Fraunces',serif; font-weight:700; font-size:27px; color:var(--ink); line-height:1.1;
+}
+.day-head .city{
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--terracotta); font-weight:600; margin-top:3px;
+}
+.day-head .daynum{
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft);
+  background:var(--whitewash-2); padding:3px 8px; border-radius:20px;
+}
+
+/* category legend */
+.cat-legend{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.cat-legend span{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; color:var(--ink-soft); font-weight:600;}
+.cat-legend .dot{width:9px; height:9px; border-radius:3px;}
+.cat-legend .dot.sight{background:var(--cat-sight);}
+.cat-legend .dot.transit{background:var(--cat-transit);}
+.cat-legend .dot.food{background:var(--cat-food);}
+
+.nownext{
+  display:none;
+  background:var(--azulejo-deep); color:#fff; border-radius:10px; padding:10px 13px; margin-bottom:14px;
+  font-size:12px; line-height:1.6;
+}
+.nownext.show{display:block;}
+.nownext b{font-family:'JetBrains Mono',monospace; font-weight:700;}
+.nownext .nn-next{color:var(--azulejo-mid); margin-top:2px; display:block;}
+
+.timeline{position:relative;}
+.trow{
+  display:grid; grid-template-columns:58px 1fr; gap:10px;
+  padding:11px 10px 11px 12px; margin-bottom:7px;
+  border-left:4px solid var(--line); border-radius:8px;
+  background:var(--card);
+}
+.trow.sight{border-left-color:var(--cat-sight); background:var(--cat-sight-bg);}
+.trow.transit{border-left-color:var(--cat-transit); background:var(--cat-transit-bg);}
+.trow.food{border-left-color:var(--cat-food); background:var(--cat-food-bg);}
+.trow .time{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px; color:var(--ink);
+  line-height:1.4; padding-top:1px;
+}
+.trow .cat-icon{display:block; font-size:14px; margin-bottom:3px;}
+.trow .desc{font-size:14px; line-height:1.55; color:var(--ink);}
+.trow.alert .desc{color:var(--terracotta); font-weight:700;}
+
+.hotel-strip{
+  margin-top:16px; padding:11px 14px; background:var(--card); border:1px solid var(--line);
+  border-radius:10px; font-size:12.5px; color:var(--ink-soft); display:flex; align-items:center; gap:8px;
+}
+.hotel-strip b{color:var(--ink); font-weight:600;}
+
+/* ---------- INFO TAB ---------- */
+.info-block{margin-bottom:20px;}
+.info-block h3{
+  font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--azulejo-deep); margin:0 0 10px;
+  display:flex; align-items:center; gap:7px;
+}
+.irow{
+  display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px solid var(--line);
+  font-size:13px;
+}
+.irow:first-of-type{border-top:none;}
+.irow .k{color:var(--ink-soft);}
+.irow .v{font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; text-align:right;}
+.info-block p{font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:6px 0 0;}
+
+/* ---------- FOOD TAB ---------- */
+.food-city-head{
+  font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:var(--azulejo-deep);
+  margin:20px 0 10px;
+}
+.food-city-head:first-child{margin-top:0;}
+.food-cat{margin-bottom:10px;}
+.food-cat .fc-label{
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#fff;
+  padding:2px 8px; border-radius:5px; display:inline-block; margin-bottom:6px;
+}
+.food-cat.brunch .fc-label{background:var(--cat-transit);}
+.food-cat.lunch .fc-label{background:var(--cat-food);}
+.food-cat.dinner .fc-label{background:var(--terracotta);}
+.food-cat.cafe .fc-label{background:var(--azulejo-mid);}
+.food-cat.bar .fc-label{background:#7A5C8C;}
+.food-item{font-size:13px; line-height:1.7; padding-left:2px;}
+.food-item b{font-weight:600;}
+.food-item .star{color:var(--terracotta);}
+.food-item span{color:var(--ink-soft); font-size:11.5px;}
+
+/* ---------- BUDGET TAB ---------- */
+.budget-total-card{
+  background:var(--azulejo-deep); color:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px;
+}
+.budget-total-card .label{font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--azulejo-mid); text-transform:uppercase; letter-spacing:.05em;}
+.budget-total-card .amount{font-family:'Fraunces',serif; font-weight:700; font-size:32px; margin-top:4px;}
+.bgroup{margin-bottom:16px;}
+.bgroup .bg-title{font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--terracotta); margin-bottom:8px; display:flex; justify-content:space-between;}
+.brow{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line);}
+.brow:first-of-type{border-top:none;}
+.brow .bname{font-size:13px; flex:1;}
+.binput-wrap{display:flex; align-items:center; gap:3px;}
+.binput-wrap span{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft);}
+.binput{width:64px; padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:12.5px; text-align:right;}
+.budget-sync-note{font-size:11.5px; color:var(--ink-soft); background:var(--whitewash-2); padding:10px 12px; border-radius:8px; margin-bottom:16px; line-height:1.6;}
+
+@media (min-width:561px){
+  .app{border-left:1px solid var(--line); border-right:1px solid var(--line); box-shadow:0 0 40px rgba(0,0,0,.06);}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="title-row">
+      <h1>🇵🇹🇪🇸 이베리아 여정</h1>
+      <button class="dark-toggle" id="dark-toggle">🌙</button>
+    </div>
+    <div style="margin-bottom:8px;"><span class="range">8.16 → 8.28</span> <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,.35); margin-left:6px;">build 20260805-11</span></div>
+    <div class="city-strip" id="city-strip"></div>
+    <div class="day-strip" id="day-strip"></div>
+  </div>
+
+  <div class="content">
+    <div class="view active" id="view-schedule">
+      <div class="day-head">
+        <div>
+          <div class="date-big" id="dh-date">-</div>
+          <div class="city" id="dh-city">-</div>
+        </div>
+        <div class="daynum" id="dh-num">-</div>
+      </div>
+      <div class="nownext" id="nownext"></div>
+      <div class="cat-legend">
+        <span><span class="dot sight"></span>관광코스</span>
+        <span><span class="dot transit"></span>이동</span>
+        <span><span class="dot food"></span>식사·카페</span>
+      </div>
+      <div class="timeline" id="timeline"></div>
+      <div class="hotel-strip" id="hotel-strip" style="display:none;">
+        🏨 <span id="hotel-text"></span>
+      </div>
+      <a href="https://drive.google.com/drive/folders/1foXyce6h_2Q15xXD0ApzEEfKy2xUJZ6S?usp=drive_link" target="_blank" style="display:flex; align-items:center; gap:8px; margin-top:10px; padding:11px 14px; background:var(--card); border:1px solid var(--line); border-radius:10px; font-size:12.5px; color:var(--azulejo-deep); text-decoration:none; font-weight:600;">
+        📁 예약서류 Google Drive 폴더 열기
+      </a>
+    </div>
+
+    <div class="view" id="view-food">
+      <div class="food-city-head">🇵🇹 리스본·신트라·벨렝</div>
+      <div class="food-cat brunch"><div class="fc-label">브런치</div>
+        <div class="food-item"><b class="star">★</b> <b>A Padaria Portuguesa</b> <span>호텔 근처, 투고</span></div>
+        <div class="food-item"><b>Dear Breakfast</b> <span>Chiado, 아보카도토스트·에그베네딕트</span></div>
+        <div class="food-item"><b>Copenhagen Coffee Lab</b> <span>Alfama/Baixa, 드립커피+시나몬롤</span></div>
+      </div>
+      <div class="food-cat lunch"><div class="fc-label">점심</div>
+        <div class="food-item"><b class="star">★</b> <b>Tascantiga</b> <span>신트라, 가정식</span></div>
+      </div>
+      <div class="food-cat dinner"><div class="fc-label">저녁</div>
+        <div class="food-item"><b class="star">★</b> <b>타임아웃 마켓</b> <span>Mercado da Ribeira</span></div>
+        <div class="food-item"><b class="star">★</b> <b>벨렝 나타 빵집</b> <span>선택</span></div>
+        <div class="food-item"><b>Ramiro</b> <span>해산물 성지, 예약 권장</span></div>
+        <div class="food-item"><b>A Cevicheria</b> <span>Príncipe Real, 세비체</span></div>
+      </div>
+      <div class="food-cat cafe"><div class="fc-label">카페·디저트</div>
+        <div class="food-item"><b class="star">★</b> <b>Fábrica Coffee Roasters</b> <span>Chiado</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Manteigaria</b> <span>즉석 나타</span></div>
+        <div class="food-item"><b>Castro - Atelier de Pastéis</b> <span>나타 최고봉급 대안</span></div>
+      </div>
+      <div class="food-cat bar"><div class="fc-label">와인·맥주</div>
+        <div class="food-item"><b>By The Wine</b> <span>Chiado</span></div>
+        <div class="food-item"><b>Wine Bar do Castelo</b> <span>Alfama</span></div>
+      </div>
+
+      <div class="food-city-head">🇵🇹 포르투</div>
+      <div class="food-cat brunch"><div class="fc-label">브런치</div>
+        <div class="food-item"><b class="star">★</b> <b>Coffee Porto</b> <span>다리 위 뷰카페, 투고</span></div>
+        <div class="food-item"><b>Combi Coffee Roasters</b> <span>로스터리</span></div>
+        <div class="food-item"><b>7g Roaster</b> <span>가이아 강변</span></div>
+        <div class="food-item"><b>Confeitaria do Bolhão</b> <span>120년 베이커리</span></div>
+      </div>
+      <div class="food-cat lunch"><div class="fc-label">점심</div>
+        <div class="food-item"><b class="star">★</b> <b>Bolhão Market</b></div>
+        <div class="food-item"><b class="star">★</b> <b>Foz do Douro 해산물</b></div>
+        <div class="food-item"><b class="star">★</b> <b>Taberna dos Mercadores</b> <span>Ribeira, 소금구이농어 · 📞 전화예약필수</span></div>
+      </div>
+      <div class="food-cat dinner"><div class="fc-label">저녁</div>
+        <div class="food-item"><b class="star">★</b> <b>Quevedo 와인바</b> <span>포트와인+하몬</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Koutipons 타베르나 파두쇼</b> <span>4.7★, 코임브라+전통 파두 두 스타일</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Café Santiago</b> <span>프란세지냐, Santa Catarina 인근</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Seoulstice</b> <span>한식 평점 9.5, 마지막 밤</span></div>
+      </div>
+      <div class="food-cat cafe"><div class="fc-label">카페·디저트</div>
+        <div class="food-item"><b class="star">★</b> <b>Café Majestic</b> <span>분위기·사진, 커피는 Fábrica 포르투점 대체 가능</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Fábrica 포르투점</b></div>
+      </div>
+      <div class="food-cat bar"><div class="fc-label">와인·맥주</div>
+        <div class="food-item"><b>Capela Incomum</b> <span>예배당 개조 와인바</span></div>
+        <div class="food-item"><b>Letraria Porto</b> <span>수제맥주 가든</span></div>
+      </div>
+
+      <div class="food-city-head">🇪🇸 마드리드·톨레도</div>
+      <div class="food-cat brunch"><div class="fc-label">브런치</div>
+        <div class="food-item"><b class="star">★</b> <b>Toma Café</b> <span>레이나 소피아 근처</span></div>
+        <div class="food-item"><b>Acid Café</b> <span>우에르타스, 미슐랭급 베이커리</span></div>
+        <div class="food-item"><b>Plantiique</b> <span>비건 브런치</span></div>
+      </div>
+      <div class="food-cat lunch"><div class="fc-label">점심 (톨레도)</div>
+        <div class="food-item"><b class="star">★</b> <b>Restaurante Alfil</b> <span>소코도베르 근처</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Lo Nuestro</b> <span>대성당 근처</span></div>
+      </div>
+      <div class="food-cat dinner"><div class="fc-label">저녁</div>
+        <div class="food-item"><b class="star">★</b> <b>산미겔 시장</b></div>
+        <div class="food-item"><b class="star">★</b> <b>Casa Alberto</b> <span>1827년, 우에르타스 · 📞 전화예약권장</span></div>
+        <div class="food-item"><b>Restaurante Tripea</b> <span>Mercado de Vallehermoso</span></div>
+      </div>
+      <div class="food-cat cafe"><div class="fc-label">카페·디저트</div>
+        <div class="food-item"><b class="star">★</b> <b>Chocolatería San Ginés</b> <span>추로스</span></div>
+      </div>
+      <div class="food-cat bar"><div class="fc-label">와인·맥주</div>
+        <div class="food-item"><b>Salmon Guru</b> <span>World's 50 Best Bars</span></div>
+        <div class="food-item"><b>Taberna La Venencia</b> <span>셰리와인 바</span></div>
+      </div>
+
+      <div class="food-city-head">🇪🇸 바르셀로나</div>
+      <div class="food-cat brunch"><div class="fc-label">브런치</div>
+        <div class="food-item"><b class="star">★</b> <b>AC Hotel Sants 로비</b></div>
+        <div class="food-item"><b>Hidden Coffee Roasters</b> <span>Les Corts, 산츠역 도보권</span></div>
+        <div class="food-item"><b>Satan's Coffee Corner</b> <span>고딕/에이샴플레</span></div>
+      </div>
+      <div class="food-cat lunch"><div class="fc-label">점심</div>
+        <div class="food-item"><b class="star">★</b> <b>보케리아 시장</b></div>
+        <div class="food-item"><b>Vinitus / Ciutat Comtal</b> <span>Passeig de Gràcia</span></div>
+        <div class="food-item"><b>Can Paixano</b> <span>El Born, 카바+샌드위치</span></div>
+      </div>
+      <div class="food-cat dinner"><div class="fc-label">저녁</div>
+        <div class="food-item"><b class="star">★</b> <b>7 Portes / El Rey de la Gamba</b> <span>바르셀로네타</span></div>
+        <div class="food-item"><b class="star">★</b> <b>Tapas 24</b> <span>카사밀라 도보10분, 마지막 저녁</span></div>
+        <div class="food-item"><b class="star">★</b> <b>그라시아 동네 맛집</b></div>
+      </div>
+      <div class="food-cat cafe"><div class="fc-label">카페·디저트</div>
+        <div class="food-item"><b class="star">★</b> <b>Mollo Coffee</b> <span>그라시아</span></div>
+        <div class="food-item"><b class="star">★</b> <b>El Magnífico</b> <span>엘 보른, 1919년</span></div>
+        <div class="food-item"><b>Nómada Coffee Lab</b> <span>그라시아</span></div>
+      </div>
+      <div class="food-cat bar"><div class="fc-label">와인·맥주</div>
+        <div class="food-item"><b>El Xampanyet</b> <span>El Born, 1929년 카바바</span></div>
+        <div class="food-item"><b>Garage Beer Co</b> <span>수제맥주</span></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--ink-soft); margin-top:16px;"><span class="star">★</span> = 일정에 이미 포함된 곳</p>
+    </div>
+
+    <div class="view" id="view-budget">
+      <div class="budget-total-card">
+        <div class="label">Total Spent</div>
+        <div class="amount" id="budget-total">€0</div>
+        <div id="budget-krw" style="font-size:11px; color:var(--azulejo-mid); margin-top:4px; font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+      <div class="budget-sync-note">💾 이 값은 이 파일 안에서만 저장돼요. 준비용 대시보드(v1)와는 별도로 관리되니, 여행 중엔 이 카드 하나만 쓰시는 걸 추천해요.</div>
+      <div id="budget-body"></div>
+    </div>
+
+    <div class="view" id="view-info">
+      <div class="info-block">
+        <h3>🆘 긴급 연락처</h3>
+        <div class="irow"><span class="k">EU 통합 긴급전화</span><span class="v">112</span></div>
+        <div class="irow"><span class="k">주포르투갈 대사관</span><span class="v">+351-21-793-7200</span></div>
+        <div class="irow"><span class="k">〃 근무외 긴급</span><span class="v">+351-91-079-505</span></div>
+        <div class="irow"><span class="k">주스페인 대사관</span><span class="v">+34-91-353-2000</span></div>
+        <div class="irow"><span class="k">〃 야간·휴일</span><span class="v">+34-648-924-695</span></div>
+        <div class="irow"><span class="k">주바르셀로나 총영사관</span><span class="v">+34-93-487-3153</span></div>
+        <div class="irow"><span class="k">영사콜센터(24h)</span><span class="v">+82-2-3210-0404</span></div>
+      </div>
+      <div class="info-block">
+        <h3>🚇 도시별 교통카드</h3>
+        <div class="irow"><span class="k">🇵🇹 리스본</span><span class="v">Viva Viagem</span></div>
+        <div class="irow"><span class="k">🇵🇹 포르투</span><span class="v">Andante</span></div>
+        <div class="irow"><span class="k">🇪🇸 마드리드</span><span class="v">Abono / Multi</span></div>
+        <div class="irow"><span class="k">🇪🇸 바르셀로나</span><span class="v">Hola BCN / T-Casual</span></div>
+      </div>
+      <div class="info-block">
+        <h3>🌡️ 8월 기온</h3>
+        <div class="irow"><span class="k">리스본·포르투</span><span class="v">20~28°C</span></div>
+        <div class="irow"><span class="k">마드리드</span><span class="v">21~34°C</span></div>
+        <div class="irow"><span class="k">바르셀로나</span><span class="v">23~29°C</span></div>
+      </div>
+      <div class="info-block">
+        <h3>💳 팁 · 결제</h3>
+        <p>레스토랑 5~10% 소액 팁 관례(의무 아님) · 카페/바는 거스름돈 정도 · 소액도 카드 결제 보편적, 일부 노점·시장은 현금만</p>
+      </div>
+      <div class="info-block">
+        <h3>✅ 출국 전 체크리스트</h3>
+        <div class="irow"><span class="k">KE0921 모바일 체크인</span><span class="v">8/14 12:45~</span></div>
+        <div class="irow"><span class="k">UX1140 모바일 체크인</span><span class="v">8/20 16:05~</span></div>
+        <div class="irow"><span class="k">KE0914 모바일 체크인</span><span class="v">8/25 20:20~</span></div>
+        <div class="irow"><span class="k">여권 유효기간</span><span class="v">6개월+ 확인</span></div>
+        <div class="irow"><span class="k">여행자보험</span><span class="v">가입 완료?</span></div>
+        <div class="irow"><span class="k">eSIM</span><span class="v">포르투갈+스페인</span></div>
+        <div class="irow"><span class="k">해외결제 카드</span><span class="v">준비 완료?</span></div>
+        <div class="irow"><span class="k">전원 어댑터</span><span class="v">Type C/F</span></div>
+        <div class="irow"><span class="k">오프라인 지도</span><span class="v">4개 도시 다운로드</span></div>
+        <p>ETIAS는 이번 여행 해당 없음(2026년 4분기 시행 예정) · 국제운전면허증은 렌트 계획 있을 때만</p>
+      </div>
+      <div class="info-block">
+        <h3>✈️ 여행 직전 최종 체크</h3>
+        <div class="irow"><span class="k">트래블월렛 유로 충전</span><span class="v">출발전 완료</span></div>
+        <div class="irow"><span class="k">Viva Viagem 카드</span><span class="v">공항서 구매</span></div>
+        <div class="irow"><span class="k">Translate 오프라인팩</span><span class="v">PT+ES</span></div>
+        <div class="irow"><span class="k">Bolt·Uber 앱+결제등록</span><span class="v">출발전 완료</span></div>
+        <div class="irow"><span class="k">모바일 탑승권 월렛저장</span><span class="v">체크인 직후</span></div>
+        <div class="irow"><span class="k">보조배터리·어댑터·AirTag</span><span class="v">배터리 확인</span></div>
+        <div class="irow"><span class="k">여권사본+증명사진 2장</span><span class="v">다른 가방 보관</span></div>
+        <div class="irow"><span class="k">eSIM 활성화 방법</span><span class="v">QR 캡처+숙지</span></div>
+        <div class="irow"><span class="k">카드사 해외결제 알림</span><span class="v">한도 확인</span></div>
+        <div class="irow"><span class="k">상비약</span><span class="v">진통제·지사제·밴드</span></div>
+        <p>수하물: 기내(보조배터리·에어태그·카메라·중요약품·귀중품) / 위탁(100ml 초과 액체류·손톱깎이 등 날붙이)</p>
+      </div>
+      <div class="info-block">
+        <h3>📞 전화예약 필요 (호텔 컨시어지 부탁)</h3>
+        <div class="irow"><span class="k">Taberna dos Mercadores</span><span class="v">8/20 · +351 22 201 0510</span></div>
+        <div class="irow"><span class="k">Casa Alberto</span><span class="v">8/23 · +34 914 299 356</span></div>
+      </div>
+      <div class="info-block">
+        <h3>⚠️ 추가 확인 필요</h3>
+        <div class="irow"><span class="k">Forte de Gaia 얼리체크인</span><span class="v">8/19 12:48 도착</span></div>
+        <div class="irow"><span class="k">UX1140 수하물</span><span class="v">✅ 기내10kg+위탁1개</span></div>
+        <div class="irow"><span class="k">전 항공편 좌석선택</span><span class="v">체크인시 진행</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-view="schedule"><span class="icon">📅</span>일정</button>
+    <button class="tab-btn" data-view="food"><span class="icon">🍽️</span>맛집</button>
+    <button class="tab-btn" data-view="budget"><span class="icon">💶</span>예산</button>
+    <button class="tab-btn" data-view="info"><span class="icon">🧭</span>정보</button>
+  </div>
+</div>
+
+<script>
+/* ============ ITINERARY DATA (grouped by city) ============ */
+const cities = [
+  { key:"lisbon", label:"🇵🇹 리스본", range:"8.16–19", days:[
+    { key:"0816", date:"8/16", w:"일", city:"🇵🇹 리스본 도착", hotel:"Moxy Lisboa Oriente", items:[
+      ["12:45~20:20","✈️ 대한항공 KE0921 · ICN → LIS","transit"],
+      ["20:20~20:50","입국심사 (Schengen 첫 입국, 시간 걸릴 수 있음) → 수하물 수령","transit"],
+      ["20:50~21:10","지하철 Red Line 공항→Oriente (직행 6분, 호텔 도보권) 또는 Bolt/택시","transit"],
+      ["21:30~","체크인 → eSIM 활성화 확인 → 가벼운 휴식","transit"]
+    ]},
+    { key:"0817", date:"8/17", w:"월", city:"🇵🇹 리스본", hotel:"Moxy City Lisbon", items:[
+      ["08:30~09:00","☕ A Padaria Portuguesa — 투고 커피+토스트","food"],
+      ["09:00~12:00","바이샤 → 호시우 광장 → 코메르시우 광장 → 리스본 대성당","sight"],
+      ["12:30~14:00","🛍️ Chiado·Rua Augusta 쇼핑 & 점심","food"],
+      ["14:00~14:30","☕ Fábrica Coffee Roasters → Manteigaria 나타 픽업","food"],
+      ["14:45~17:00","알파마 → 미라두로 전망대 산책","sight"],
+      ["17:00~","🚋 트램 28번 타고 하산 (대기 길면 12E 또는 Uber)","transit"],
+      ["18:30~20:30","🍽️ 타임아웃 마켓 → 21시 전 호텔 복귀, 일찍 휴식","food"]
+    ]},
+    { key:"0818", date:"8/18", w:"화", city:"🇵🇹 신트라", hotel:"Moxy City Lisbon", items:[
+      ["07:15~07:45","☕ A Padaria Portuguesa 투고","food"],
+      ["07:45~08:30","Rossio역 출발 → Sintra","transit"],
+      ["10:00~11:45","🏰 페나 궁전","sight"],
+      ["12:00~13:00","🍽️ Tascantiga 점심","food"],
+      ["13:30~15:00","🌿 레갈레이라 (티켓 전날 이메일 발송)","sight"],
+      ["15:00~15:20","신트라역 이동","transit"],
+      ["15:30~16:15","열차","transit"],
+      ["16:20~16:40","Rossio 도착","transit"],
+      ["17:00~19:00","(체력 되면) 벨렝 탑 외관 + 파스텔 드 나타 원조 빵집","sight",true],
+      ["19:30~20:30","🍽️ 저녁 — 벨렝 다녀왔으면 그 근처, 스킵했으면 호텔 근처에서 가볍게","food"]
+    ]}
+  ]},
+  { key:"porto", label:"🇵🇹 포르투", range:"8.19–22", days:[
+    { key:"0819", date:"8/19", w:"수", city:"🇵🇹 리스본→포르투", hotel:"Forte de Gaia, Autograph Collection", items:[
+      ["10:09~12:48","🚆 Lisboa Oriente 출발 → Porto Campanhã 도착 → 체크인 (얼리체크인 안되면 짐만 맡기고 Ribeira 먼저)","transit",true],
+      ["13:30~15:00","숙소 근처 또는 Ribeira 강변 첫 점심","food"],
+      ["15:00~17:00","Ribeira 광장 자유 산책","sight"],
+      ["17:30~","동 루이스 1세 다리 하층 도보 → Gaia 강변","transit"],
+      ["18:00~20:30","Gaia 선셋 & Quevedo 와인바 (포트와인 플라이트+하몬)","food"]
+    ]},
+    { key:"0820", date:"8/20", w:"목", city:"🇵🇹 포르투", hotel:"Forte de Gaia, Autograph Collection", items:[
+      ["09:00~09:30","☕ Coffee Porto (다리 위) 투고","food"],
+      ["09:30~10:15","Carmo Church (아줄레주 벽화)","sight"],
+      ["10:30~11:00","Clérigos Church 외관·내부 (탑 등반 제외)","sight"],
+      ["11:15~12:30","Bolhão Market 점심","food"],
+      ["12:45~13:30","Café Majestic (분위기·사진 위주) — 커피 맛 원하면 Fábrica 포르투점으로 대체 가능","food"],
+      ["13:45~14:15","São Bento 역 (아줄레주 감상)","sight"],
+      ["15:00~15:50","Palácio da Bolsa (아랍의 방 가이드 투어)","sight"],
+      ["15:55~16:35","Church of Saint Francis","sight"],
+      ["17:00~","가이아 케이블카(Teleférico de Gaia) 또는 Uber(€4~5)로 Serra do Pilar 이동 — 도보 금지, 경사 매우 심함","transit"],
+      ["18:00~19:00","Serra do Pilar 테라스 선셋","sight"],
+      ["19:30~","🍽️ Taberna dos Mercadores (Ribeira, 소금구이농어·문어밥) 📞 전화예약필수","food",true]
+    ]},
+    { key:"0821", date:"8/21", w:"금", city:"🇵🇹 포르투", hotel:"Forte de Gaia, Autograph Collection", items:[
+      ["10:00~11:30","Taylor's 와이너리 (한국어 오디오가이드)","sight"],
+      ["11:30~12:00","Jardim do Morro 전망","sight"],
+      ["12:00~12:30","도보로 Infante 정류장 하산","transit"],
+      ["12:30~15:00","1번 트램(Elétrico 1) 탑승 → Foz do Douro 이동 → 🦞 해산물 런치 · ⚠️ 8월 성수기 트램 대기 30분~1시간 가능, 줄 길면 망설이지 말고 같은 구간 500번 버스로 바로 전환","food",true],
+      ["15:30~17:30","Santa Catarina 거리 쇼핑","sight"],
+      ["18:00~19:00","파두 공연 (Koutipons 타베르나쇼+포트와인)","food"],
+      ["19:30~","🍽️ Seoulstice (한식, 평점 9.5) — 포르투 마지막 밤 저녁","food"]
+    ]}
+  ]},
+  { key:"madrid", label:"🇪🇸 마드리드", range:"8.22–24", days:[
+    { key:"0822", date:"8/22", w:"토", city:"🇵🇹→🇪🇸 마드리드", hotel:"AC Hotel Carlton Madrid", items:[
+      ["09:30~11:30","Santa Catarina 거리 쇼핑","sight"],
+      ["11:45~12:45","🍽️ Café Santiago 프란세지냐 (Santa Catarina 인근, 일찍 가기)","food"],
+      ["13:00~14:00","공항 이동","transit"],
+      ["16:05~18:15","✈️ Air Europa UX1140 · OPO→MAD (T2, 인당 기내10kg+보조가방·위탁캐리어1개)","transit"],
+      ["19:30~","호텔 체크인 (18:15 도착 감안 현실적 시간)","transit"],
+      ["19:45~20:45","산미겔 시장 가벼운 타파스 → 마요르 광장","food"],
+      ["20:45~21:45","왕궁 · 오페라 광장 야경 (일몰 21:27 이후, 여유 있게)","sight"],
+      ["21:45~22:15","☕ Chocolatería San Ginés 추로스 (24시간 운영)","food"]
+    ]},
+    { key:"0823", date:"8/23", w:"일", city:"🇪🇸 마드리드", hotel:"AC Hotel Carlton Madrid", items:[
+      ["09:15~09:49","🚆 AVANT 아토차→톨레도","transit"],
+      ["10:00~11:30","소코트렌 → Mirador del Valle","sight"],
+      ["11:40~12:40","Alcázar de Toledo","sight"],
+      ["12:40~14:00","🍽️ Restaurante Alfil / Lo Nuestro","food"],
+      ["14:00~15:15","Catedral Primada","sight"],
+      ["16:25~16:59","🚆 톨레도 → 아토차","transit"],
+      ["17:00~17:10","도보 → 프라도 미술관","transit"],
+      ["17:10~18:30","🖼️ 프라도 무료입장 시도 (일 17~19시, 줄 길면 포기)","sight",true],
+      ["18:30~19:45","🍽️ Casa Alberto (우에르타스) 📞 전화예약권장","food",true],
+      ["19:45~20:15","La Latina 이동 (도보 15~20분)","transit"],
+      ["20:15~21:00","Cava Baja 골목 산책하며 대기","sight"],
+      ["21:00~22:00","💃 La Cueva de Lola 플라멩코 (17세기 동굴 타블라오)","sight"],
+      ["22:00~22:30","숙소 복귀 · 휴식","transit"]
+    ]}
+  ]},
+  { key:"barcelona", label:"🇪🇸 바르셀로나", range:"8.24–26", days:[
+    { key:"0824", date:"8/24", w:"월", city:"🇪🇸 마드리드→바르셀로나", hotel:"AC Hotel Sants Barcelona", items:[
+      ["09:30~10:30","☕ Toma Café — 느긋하게 (오전 자유)","food"],
+      ["10:30~11:30","체크아웃 · 짐 정리","transit"],
+      ["11:30~12:05","아토차역 도보 이동","transit"],
+      ["12:22~15:39","🚄 IRYO 마드리드→바르셀로나 (Car 5/13A·13B)","transit"],
+      ["15:39~16:15","체크인","transit"],
+      ["16:30~18:00","🛍️ 보케리아 시장 → 레이알 광장","sight"],
+      ["19:30~20:30","🌊 바르셀로나타 해변 산책 (일몰 20:40경)","sight"],
+      ["20:45~21:15","대성당 야경 (일몰 후 진짜 야경)","sight"],
+      ["21:15~","🍽️ 7 Portes / El Rey de la Gamba","food"]
+    ]},
+    { key:"0825", date:"8/25", w:"화", city:"🇪🇸 바르셀로나", hotel:"AC Hotel Sants Barcelona", items:[
+      ["09:45~10:15","☕ AC Hotel Sants 로비 투고","food"],
+      ["10:30~12:30","🕒 구엘공원","sight"],
+      ["15:00~17:00","🕒 사그라다 파밀리아 ⚠️앱 사전설치 필요","sight",true],
+      ["17:00~17:30","그라시아 지구 산책","sight"],
+      ["17:30~18:15","☕ Mollo Coffee","food"],
+      ["19:00~21:00","🍽️ Bar Bodega Quimet 저녁 (그라시아 베르무트+타파스)","food"]
+    ]},
+    { key:"0826", date:"8/26", w:"수", city:"🇪🇸 바르셀로나", hotel:"AC Hotel Sants Barcelona", items:[
+      ["10:00~11:30","카사 바트요 ⚠️가우디앱 사전설치 필요","sight",true],
+      ["11:30~12:15","Passeig de Gràcia 도보 🛍️","sight"],
+      ["12:15~13:45","카사 밀라","sight"],
+      ["14:00~15:30","Rambla de Catalunya 🛍️ → El Corte Inglés 기념품+Zara","food"],
+      ["19:00~20:30","🍽️ Tapas 24 (카사밀라 도보 10분) — 스페인 마지막 저녁","food"],
+      ["20:45~21:00","L3 → Espanya역 → MNAC 계단","transit"],
+      ["21:30~22:30","🌃 몬주익 분수쇼 (당일 저녁 운영여부 확인!)","sight",true],
+      ["","미운영 시 MNAC 테라스 또는 Bunkers del Carmel","sight",true]
+    ]}
+  ]},
+  { key:"return", label:"🇰🇷 귀국", range:"8.27–28", days:[
+    { key:"0827", date:"8/27", w:"목", city:"🇪🇸 바르셀로나→마드리드→🇰🇷 귀국", hotel:"-", items:[
+      ["09:00~10:15","🎨 엘 보른 지구 산책","sight"],
+      ["10:15~11:00","☕ El Magnífico","food"],
+      ["11:00~12:00","체크아웃 → 🍽️ 이른 점심","food"],
+      ["13:13~16:37","🚄 IRYO 바르셀로나→마드리드 (Car 5/8A·8B)","transit"],
+      ["16:37~17:10","Cercanías C1/C10 → T4 (IRYO 승차권 무료연계)","transit"],
+      ["17:10~17:30","T4→T1 무료 셔틀버스 (KE0914는 T1 출발)","transit",true],
+      ["","🧾 T1 출발층 DIVA 기계 택스리펀","transit"],
+      ["","🛋️ Sala VIP Cibeles 라운지 — 여권심사후 2층 Gate B26~29, 17:20부터 입장가능","transit"],
+      ["20:20~","✈️ 대한항공 KE0914 · MAD→ICN","transit"]
+    ]},
+    { key:"0828", date:"8/28", w:"금", city:"🇰🇷 인천 도착", hotel:"-", items:[
+      ["16:00","✈️ 인천 도착","transit"]
+    ]}
+  ]}
+];
+
+/* ============ BUDGET DATA ============ */
+const budgetItems = [
+  { id:"b_lisbon_porto_train", group:"교통비", name:"리스본→포르투 기차", def:30 },
+  { id:"b_ux1140", group:"교통비", name:"포르투→마드리드 UX1140", def:415 },
+  { id:"b_toledo_train", group:"교통비", name:"마드리드↔톨레도 AVANT (2인 완료)", def:52 },
+  { id:"b_madrid_bcn", group:"교통비", name:"마드리드→바르셀로나 IRYO", def:61.12 },
+  { id:"b_bcn_madrid", group:"교통비", name:"바르셀로나→마드리드 IRYO", def:61.12 },
+  { id:"b_pena", group:"입장료(리스본·신트라)", name:"페나 궁전 (완료)", def:40 },
+  { id:"b_regaleira", group:"입장료(리스본·신트라)", name:"레갈레이라 (2인, 완료)", def:54 },
+  { id:"b_jeronimos", group:"입장료(리스본·신트라)", name:"벨렝탑 (선택)", def:6 },
+  { id:"b_lello", group:"입장료(포르투)", name:"렐루서점", def:0 },
+  { id:"b_bolsa", group:"입장료(포르투)", name:"Palácio da Bolsa (완료)", def:28 },
+  { id:"b_winery", group:"입장료(포르투)", name:"Taylor's 와이너리 (2인, 완료)", def:50 },
+  { id:"b_toledo_cathedral", group:"입장료(마드리드·톨레도)", name:"톨레도 대성당 (완료)", def:20 },
+  { id:"b_prado", group:"입장료(마드리드·톨레도)", name:"프라도 (무료입장 시도)", def:0 },
+  { id:"b_sagrada", group:"입장료(바르셀로나)", name:"사그라다 파밀리아 (완료)", def:52 },
+  { id:"b_guell_park", group:"입장료(바르셀로나)", name:"구엘공원 (완료)", def:36 },
+  { id:"b_casa_batllo", group:"입장료(바르셀로나)", name:"카사 바트요 (2인, 완료)", def:66 },
+  { id:"b_casa_mila", group:"입장료(바르셀로나)", name:"카사 밀라 (2인, 완료)", def:58 },
+  { id:"b_fado", group:"공연", name:"파두 공연 (Koutipons, 2인, 완료)", def:39.90 },
+  { id:"b_flamenco", group:"공연", name:"La Cueva de Lola 플라멩코 (2인, ₩97,016 완료)", def:62.6 },
+  { id:"b_lodging_airport", group:"숙박", name:"Moxy Lisboa Oriente", def:99 },
+  { id:"b_lodging_lisbon", group:"숙박", name:"Moxy City Lisbon", def:230.32 },
+  { id:"b_lodging_porto", group:"숙박", name:"Forte de Gaia, Autograph Collection", def:0 },
+  { id:"b_lodging_madrid", group:"숙박", name:"AC Hotel Carlton Madrid", def:154.51 },
+  { id:"b_lodging_barcelona", group:"숙박", name:"AC Hotel Sants Barcelona", def:406.46 },
+  { id:"b_food_lisbon", group:"식비", name:"리스본·신트라 식비", def:null },
+  { id:"b_food_porto", group:"식비", name:"포르투 식비", def:null },
+  { id:"b_food_madrid", group:"식비", name:"마드리드·톨레도 식비", def:null },
+  { id:"b_food_barcelona", group:"식비", name:"바르셀로나 식비", def:null },
+  { id:"b_shopping", group:"쇼핑·기타", name:"쇼핑·기념품", def:null },
+  { id:"b_misc", group:"쇼핑·기타", name:"기타(팁·예비비)", def:null }
+];
+
+/* ============ STATE ============ */
+const cityStrip = document.getElementById('city-strip');
+const dayStrip = document.getElementById('day-strip');
+const timelineEl = document.getElementById('timeline');
+
+function ymd(dateStr){
+  const [m,d] = dateStr.split('/').map(Number);
+  return new Date(2026, m-1, d).toDateString();
+}
+const todayStr = new Date().toDateString();
+
+let activeCityKey = cities[0].key;
+let activeDayKey = cities[0].days[0].key;
+
+outer:
+for(const c of cities){
+  for(const d of c.days){
+    if(ymd(d.date) === todayStr){ activeCityKey = c.key; activeDayKey = d.key; break outer; }
+  }
+}
+
+function currentCity(){ return cities.find(c => c.key === activeCityKey); }
+function findDayByKey(key){
+  for(const c of cities){
+    const d = c.days.find(x => x.key === key);
+    if(d) return { city:c, day:d };
+  }
+  return null;
+}
+function currentDay(){
+  const found = findDayByKey(activeDayKey);
+  return found ? found.day : currentCity().days[0];
+}
+
+function renderCityStrip(){
+  cityStrip.innerHTML = cities.map(c => `
+    <div class="city-pill ${c.key===activeCityKey?'active':''}" data-key="${c.key}">${c.label} <span style="opacity:.7; font-weight:400;">${c.range}</span></div>
+  `).join('');
+  cityStrip.querySelectorAll('.city-pill').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      activeCityKey = p.dataset.key;
+      const c = currentCity();
+      const todayInCity = c.days.find(d => ymd(d.date) === todayStr);
+      activeDayKey = todayInCity ? todayInCity.key : c.days[0].key;
+      renderCityStrip(); renderDayStrip(); renderDay();
+    });
+  });
+}
+
+function renderDayStrip(){
+  const c = currentCity();
+  dayStrip.innerHTML = c.days.map(d => {
+    const isToday = ymd(d.date) === todayStr;
+    return `<div class="ticket ${d.key===activeDayKey?'active':''} ${isToday?'today':''}" data-key="${d.key}">
+      <div class="d">${d.date}</div>
+      <div class="w">${d.w}</div>
+    </div>`;
+  }).join('');
+  dayStrip.querySelectorAll('.ticket').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      activeDayKey = t.dataset.key;
+      renderDayStrip(); renderDay();
+    });
+  });
+}
+
+function parseStart(timeStr){
+  if(!timeStr) return null;
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  return parseInt(m[1],10)*60 + parseInt(m[2],10);
+}
+
+function renderDay(){
+  const found = findDayByKey(activeDayKey);
+  const c = found ? found.city : currentCity();
+  const d = found ? found.day : currentCity().days[0];
+  activeCityKey = c.key; // keep city in sync with whatever day is actually showing
+  document.getElementById('dh-date').textContent = `${d.date} (${d.w})`;
+  document.getElementById('dh-city').textContent = d.city;
+  const idx = c.days.findIndex(x=>x.key===d.key);
+  document.getElementById('dh-num').textContent = `${c.label} ${idx+1}/${c.days.length}`;
+
+  try{
+    const isToday = ymd(d.date) === todayStr;
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+
+    let nowIdx = -1;
+    if(isToday){
+      const starts = d.items.map(it => parseStart(it[0]));
+      for(let i=0;i<starts.length;i++){
+        if(starts[i]!==null && starts[i]<=nowMin) nowIdx = i;
+      }
+    }
+
+    const catIcon = { sight:"📍", transit:"🚌", food:"🍴" };
+    timelineEl.innerHTML = d.items.map(([time, desc, type, alert], i) => {
+      let mapQuery = '';
+      try{
+        mapQuery = encodeURIComponent(String(desc||'').replace(/^[^\p{L}\p{N}]+/u, '').trim());
+      }catch(e){ mapQuery = ''; }
+      return `
+      <div class="trow ${type||''} ${alert?'alert':''} ${i===nowIdx?'now':''}" data-q="${mapQuery}">
+        <div class="time"><span class="cat-icon">${catIcon[type]||''}</span>${time||''}</div>
+        <div class="desc">${alert?'⚠️ ':''}${desc||''}</div>
+      </div>
+    `;
+    }).join('');
+
+    timelineEl.querySelectorAll('.trow').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const q = row.dataset.q;
+        if(q) window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
+      });
+    });
+
+    const nnEl = document.getElementById('nownext');
+    if(isToday && nowIdx >= 0){
+      const nowItem = d.items[nowIdx];
+      const nextItem = d.items[nowIdx+1];
+      let html = `🔵 지금: <b>${String(nowItem[1]||'').replace(/⚠️\s*/,'')}</b>`;
+      if(nextItem){
+        const nextStart = parseStart(nextItem[0]);
+        const diff = nextStart!==null ? nextStart - nowMin : null;
+        html += `<span class="nn-next">다음: ${String(nextItem[1]||'').replace(/⚠️\s*/,'')} ${diff!==null && diff>0 ? `(${diff}분 후)`:''}</span>`;
+      }
+      nnEl.innerHTML = html;
+      nnEl.classList.add('show');
+    } else {
+      nnEl.classList.remove('show');
+    }
+  }catch(err){
+    timelineEl.innerHTML = `<div class="trow"><div class="time"></div><div class="desc">⚠️ 렌더링 오류: ${err.message}</div></div>`;
+  }
+
+  const hotelStrip = document.getElementById('hotel-strip');
+  if(d.hotel && d.hotel !== '-'){
+    hotelStrip.style.display = 'flex';
+    document.getElementById('hotel-text').textContent = d.hotel;
+  } else {
+    hotelStrip.style.display = 'none';
+  }
+}
+
+/* ============ BUDGET ============ */
+async function getVal(key, fallback){
+  try{
+    const r = await window.storage.get(key, true);
+    return r ? JSON.parse(r.value) : fallback;
+  }catch(e){ return fallback; }
+}
+async function setVal(key, value){
+  try{ await window.storage.set(key, JSON.stringify(value), true); }
+  catch(e){ console.error('storage failed', e); }
+}
+
+const budgetBody = document.getElementById('budget-body');
+
+async function renderBudget(){
+  budgetBody.innerHTML = '';
+  const groups = [...new Set(budgetItems.map(it=>it.group))];
+  for(const group of groups){
+    const items = budgetItems.filter(it=>it.group===group);
+    const wrap = document.createElement('div');
+    wrap.className = 'bgroup';
+    wrap.innerHTML = `<div class="bg-title"><span>${group}</span></div>`;
+    for(const it of items){
+      const stored = await getVal('budget:'+it.id, it.def);
+      const row = document.createElement('div');
+      row.className = 'brow';
+      row.innerHTML = `
+        <div class="bname">${it.name}</div>
+        <div class="binput-wrap"><span>€</span>
+          <input type="number" class="binput" data-id="${it.id}" value="${stored!==null&&stored!==undefined?stored:''}" placeholder="0">
+        </div>`;
+      wrap.appendChild(row);
+    }
+    budgetBody.appendChild(wrap);
+  }
+  budgetBody.querySelectorAll('.binput').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const val = inp.value===''?null:Number(inp.value);
+      await setVal('budget:'+inp.dataset.id, val);
+      updateTotal();
+    });
+  });
+  updateTotal();
+}
+
+function updateTotal(){
+  let total = 0;
+  budgetBody.querySelectorAll('.binput').forEach(inp=>{
+    const v = Number(inp.value);
+    if(!isNaN(v)) total += v;
+  });
+  const krw = Math.round(total * 1550);
+  document.getElementById('budget-total').textContent = `€${total.toLocaleString()}`;
+  document.getElementById('budget-krw').textContent = `≈ ₩${krw.toLocaleString()} (참고용, €1≈₩1,550)`;
+}
+
+/* ============ TABS ============ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ============ DARK MODE ============ */
+let isDark = false;
+document.getElementById('dark-toggle').addEventListener('click', ()=>{
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('dark-toggle').textContent = isDark ? '☀️' : '🌙';
+});
+
+/* ============ SWIPE BETWEEN DAYS (flat sequence across all cities) ============ */
+const flatDays = [];
+cities.forEach(c => c.days.forEach(d => flatDays.push({cityKey:c.key, dayKey:d.key})));
+
+function goToFlatIndex(i){
+  if(i<0 || i>=flatDays.length) return;
+  activeCityKey = flatDays[i].cityKey;
+  activeDayKey = flatDays[i].dayKey;
+  renderCityStrip(); renderDayStrip(); renderDay();
+  const el = dayStrip.querySelector('.ticket.active');
+  if(el) el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+let touchStartX = 0;
+const contentEl = document.querySelector('.content');
+contentEl.addEventListener('touchstart', e=>{ touchStartX = e.changedTouches[0].screenX; }, {passive:true});
+contentEl.addEventListener('touchend', e=>{
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  if(Math.abs(dx) < 60) return;
+  const curFlatIdx = flatDays.findIndex(f => f.cityKey===activeCityKey && f.dayKey===activeDayKey);
+  if(dx < 0) goToFlatIndex(curFlatIdx+1);   // swipe left → next day
+  else goToFlatIndex(curFlatIdx-1);          // swipe right → previous day
+}, {passive:true});
+
+/* refresh now/next every minute while a day is open */
+setInterval(()=>{ renderDay(); }, 60000);
+
+/* ============ INIT ============ */
+renderCityStrip();
+renderDayStrip();
+renderDay();
+renderBudget();
+setTimeout(()=>{
+  const el = dayStrip.querySelector('.ticket.active');
+  if(el) el.scrollIntoView({behavior:'auto', inline:'center', block:'nearest'});
+}, 50);
+</script>
+</body>
+</html>
